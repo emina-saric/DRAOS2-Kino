@@ -1,0 +1,14 @@
+﻿<Window x:Class="KinoWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Prijava" Height="350" Width="525">
+    <Grid>
+        <Button Content="Prijavi se" HorizontalAlignment="Left" Margin="232,149,0,0" VerticalAlignment="Top" Width="75" TabIndex="3" Click="Button_Click"/>
+        <TextBox Name="username" HorizontalAlignment="Left" Height="23" Margin="187,64,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" TabIndex="1" GotFocus="username_GotFocus"/>
+        <!--<TextBox Name="password" HorizontalAlignment="Left" Height="23" Margin="187,106,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" TabIndex="2"/>-->
+        <Label Content="Korisničko ime" HorizontalAlignment="Left" Margin="95,62,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.275,0.433"/>
+        <Label Content="Lozinka" HorizontalAlignment="Left" Margin="132,102,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.252,-0.516"/>
+        <PasswordBox Name="password" HorizontalAlignment="Left" Height="23" Margin="187,106,0,0" VerticalAlignment="Top" Width="120" TabIndex="2" GotFocus="password_GotFocus"/>
+
+    </Grid>
+</Window>
