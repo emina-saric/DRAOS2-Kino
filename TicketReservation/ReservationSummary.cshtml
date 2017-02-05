@@ -1,0 +1,12 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Potvrda rezervacije";
+}
+
+@{ 
+    int projectionID = Request.Form["projectionID"].AsInt();
+    int numberOfTickets = Request.Form["numberOfTickets"].AsInt();
+
+    @Html.Label("Broj karata") @numberOfTickets
+    
+}

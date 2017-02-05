@@ -1,0 +1,38 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Stranica za potvrdu registracije";
+
+    string message = "";
+    var confirmationToken = Request["confirmationCode"];
+
+    WebSecurity.Logout();
+    if (!confirmationToken.IsEmpty()) {
+        if (WebSecurity.ConfirmAccount(confirmationToken)) {
+            message = "Prijava potvrđena! Kliknite na 'Prijava' da nastavite koristiti sajt.";
+        } else {
+            message = "Nismo bili u mogućnosti da potvrdimo Vaše registracijske podatke.";
+        }
+    }
+}
+
+<hgroup class="title">
+    <h1>@Page.Title.</h1>
+    <h2>Ispunite formu ispod da biste potvrdili Vaš račun.</h2>
+</hgroup>
+
+@if (!message.IsEmpty()) {
+    <p>@message</p>
+} else {
+    <form method="post">
+        <fieldset>
+            <legend>Kod za potvrdu</legend>
+            <ol>
+                <li>
+                    <label for="confirmationCode">Kod za potvrdu</label>
+                    <input type="text" id="confirmationCode" name="confirmationCode" />
+                </li>
+            </ol>
+            <input type="submit" value="Potvrdi" />
+        </fieldset>
+    </form>
+}

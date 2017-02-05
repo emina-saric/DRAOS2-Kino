@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Početna stranica";
+}
+
+@section featured {
+<section class="featured">
+    <div class="content-wrapper">
+        <hgroup class="title">
+            <h1>Dobrodošli na web portal za prodaju karata.</h1>
+            <h2>Za početak, izaberite projekciju filma koji želite gledati i aplikacija će vas voditi kroz preostale korake.</h2>
+        </hgroup>
+        <p>
+            Ako želite da vidite koje projekcije su dostupne u određeno vrijeme, sve što trebate je izabrati vrijeme projekcije, i aplikacija će vam ponuditi projekcije koje su tada dostupne! Filtrirajte dostupne projekcije po salama, i karte su spremne*!
+        </p>
+        <p style="font-size: 0.8em;">Rezervisane karte se moraju podići najkasnije jedan sat prije projekcije, inače se oslobađaju.</p>
+    </div>
+</section>
+}
+
+@{
+    var db = Database.Open("KinoDB");
+    var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID WHERE Projections.Time > GETDATE()";
+    var records = db.Query(selectQueryString);
+
+    if (records.Count() == 0)
+    {
+        <h2>
+            Trenutno nema projekcija na raspolaganju.
+            Molimo, pokušajte malo kasnije.
+        </h2>
+    }
+    else
+    {
+        <ul class="rig columns-4">
+            @foreach (var row in records)
+            {
+                <li>
+                    <a href="~/TicketReservation/ReserveTicket?movieID=@row.MovieID"><img alt="movie poster" src="@row.ImagePath" /></a>
+                    <h3>@row.Title</h3>
+                    <p>@row.Description</p>
+                </li>
+            }
+        </ul>
+    }
+}
+       

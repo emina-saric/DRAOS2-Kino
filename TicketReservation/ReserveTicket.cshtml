@@ -1,0 +1,80 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Rezervacija karte";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/datatables.min.css" />
+<script type="text/javascript" src="~/Scripts/datatables.min.js"></script>
+
+@{
+    int movieID = Request.QueryString["movieID"].AsInt(0);
+
+    if (movieID == 0)
+    {
+        <h2>Došlo je do greške. Molimo, pokušajte ponovo.</h2>
+    }
+    else
+    {
+        var db = Database.Open("KinoDB");
+        var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID JOIN Halls on Projections.HallID = Halls.HallID WHERE Projections.Time > GETDATE() AND Movies.MovieID = " + movieID;
+        var records = db.Query(selectQueryString);
+
+        if (records.Count() == 0)
+        {
+            <h2>
+                Trenutno nema projekcija na raspolaganju za ovaj film.
+                Molimo, pokušajte malo kasnije.
+            </h2>
+        }
+        else
+        {
+            <form id="reserveTicketForm" action="~/TicketReservation/ReservationSummary" method="post">
+                <table id="projectionsTable" class="display">
+                    <thead>
+                        <tr>
+                            <th>Vrijeme projekcije</th>
+                            <th>Sala</th>
+                            <th>Cijena</th>
+                            <th style="display: none;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in records)
+                        {
+                            <tr>
+                                <td>@record.Time</td>
+                                <td>@record.HallName</td>
+                                <td>@record.Price</td>
+                                <td style="display: none;">@Html.Hidden("projectionID", record.ProjectionsID)</td>
+                            </tr>
+                        }
+                    </tbody>                    
+                </table>
+
+                <span>Unesite broj karata:&nbsp;&nbsp;</span>@Html.TextBox("numberOfTickets", 1)
+            </form>
+
+            <script>
+                $(function () {
+                    $('#projectionsTable').DataTable({
+                        dom: 'Bfrtip',
+                        select: "single",
+                        language: {
+                            url: "/Content/DataTables-1.10.13/Croatian.json"
+                        },
+                        buttons: [
+                        {
+                            extend: 'selectedSingle',
+                            text: 'Rezerviši',
+                            action: function (e, dt, button, config) {
+                                console.log(dt.row({ selected: true }).data());
+                                document.getElementById("reserveTicketForm").submit();
+                            }
+                        }]          
+                    });
+                });
+            </script>
+        }
+
+    }
+}

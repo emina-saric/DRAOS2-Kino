@@ -1,0 +1,25 @@
+﻿@{
+    // Set the layout page and page title
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Hvala za registraciju";
+}
+
+@if (!WebSecurity.IsAuthenticated) {
+    <hgroup class="title">
+        <h1>@Page.Title.</h1>
+        <h2>Ali još niste gotovi!</h2>
+    </hgroup>
+
+    <p>
+       Ubrzo će Vam stići E-mail sa instrukcijama za aktivaciju Vašeg računa.
+    </p>
+} else {
+    <hgroup class="title">
+        <h1>@Page.Title.</h1>
+        <h2>Registracija je uspješno završena.</h2>
+    </hgroup>
+
+    <p>
+        Vaš račun je potvrđen! Možete nastaviti za pretragom sajta.
+    </p>
+}
