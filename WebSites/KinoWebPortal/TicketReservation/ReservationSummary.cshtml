@@ -3,10 +3,24 @@
     Page.Title = "Potvrda rezervacije";
 }
 
-@{ 
+@{
     int projectionID = Request.Form["projectionID"].AsInt();
     int numberOfTickets = Request.Form["numberOfTickets"].AsInt();
 
-    @Html.Label("Broj karata") @numberOfTickets
-    
+    var db = Database.Open("KinoDB");
+    var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID JOIN Halls on Projections.HallID = Halls.HallID WHERE Projections.ProjectionsID = " + projectionID.ToString();
+    var row = db.Query(selectQueryString).SingleOrDefault();
 }
+
+    @Html.Label("Film:") @row.Title
+    @Html.Label("Vrijeme projekcija:") @row.Time
+    @Html.Label("Broj karata:") @numberOfTickets
+    @Html.Label("Cijena pojedinačne karte:") @row.Price
+    @Html.Label("Ukupna cijena:") @(row.Price*numberOfTickets)
+
+<form action="ReservationConfirmation" method="post">
+    @Html.Hidden("ProjectionsID", projectionID)
+    @Html.Hidden("numberOfTickets", numberOfTickets)
+    @Html.Hidden("Price", row.Price)
+    <button type="submit">Potvrdi</button>
+</form>

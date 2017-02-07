@@ -1,0 +1,32 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Potvrda rezervacije";
+}
+
+@{
+    int projectionID = Request.Form["ProjectionsID"].AsInt(0);
+    int numberOfTickets = Request.Form["numberOfTickets"].AsInt(0);
+    int price = Request.Form["Price"].AsInt(0);
+
+    int numberOfAvailableTickets;
+
+    var db = Database.Open("KinoDB");
+    var getNumberOfAvailableTicketsString = "SELECT NumberOfTicketsAvailable FROM Projections WHERE Projections.ProjectionsID = @0";
+    numberOfAvailableTickets = db.QueryValue(getNumberOfAvailableTicketsString, projectionID);
+
+    if (numberOfAvailableTickets>numberOfTickets)
+    {
+        var selectQueryString = "UPDATE Projections SET NumberOfTicketsAvailable=@0 WHERE Projections.ProjectionsID = @1";
+        db.Query(selectQueryString, numberOfAvailableTickets - numberOfTickets, projectionID);
+
+        <p>Čestitamo! Vaša rezervacija je uspješno zabilježena!<br />
+    Nemojte zaboraviti doći po Vaše karte najkasnije sat prije prikazivanja projekcije.</p>
+    <form action="/" method="get">
+        <button type="submit">Povratak na početnu stranicu</button>
+    </form>
+    }
+    else
+    {
+        <p>Nažalost, nemamo dovoljno karata za tu projekciju. Trenutni broj karata je @(numberOfAvailableTickets).</p>
+    }
+}

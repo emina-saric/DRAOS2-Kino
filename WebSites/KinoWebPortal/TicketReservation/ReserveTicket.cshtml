@@ -28,6 +28,7 @@
         }
         else
         {
+            Validation.RequireField("numberOfTickets", "Ovo polje je obavezno.");
             <form id="reserveTicketForm" action="~/TicketReservation/ReservationSummary" method="post">
                 <table id="projectionsTable" class="display">
                     <thead>
@@ -51,7 +52,9 @@
                     </tbody>                    
                 </table>
 
-                <span>Unesite broj karata:&nbsp;&nbsp;</span>@Html.TextBox("numberOfTickets", 1)
+                <span>Unesite broj karata:&nbsp;&nbsp;</span>@Html.TextBox("numberOfTickets", 1) <small>*</small>
+                <br />
+                <small style="font-size: 0.6em;">* označava obavezno polje.</small>
             </form>
 
             <script>
