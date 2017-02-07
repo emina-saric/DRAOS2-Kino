@@ -30,3 +30,17 @@
         <p>Nažalost, nemamo dovoljno karata za tu projekciju. Trenutni broj karata je @(numberOfAvailableTickets).</p>
     }
 }
+
+@*@section featured {
+    @{
+        int movieID = db.QueryValue("SELECT MovieID FROM Projections WHERE Projections.ProjectionsID=@0", projectionID);
+        var row = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", movieID);
+    }
+    <section class="featured">
+        <div class="content-wrapper">
+            <img width="120" height="150" style="float: left; margin-right: 10px;" src="\@row.ImagePath" alt="movie poster image" />
+            <h5>@row.Title</h5>
+            <p>@row.Description</p>
+        </div>
+    </section>
+}*@

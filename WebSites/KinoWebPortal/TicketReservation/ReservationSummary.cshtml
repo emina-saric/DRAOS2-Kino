@@ -24,3 +24,16 @@
     @Html.Hidden("Price", row.Price)
     <button type="submit">Potvrdi</button>
 </form>
+
+@section featured {
+    @{
+        var movieInfoRow = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", row.MovieID);
+    }
+    <section class="featured">
+        <div class="content-wrapper">
+            <img width="120" height="150" style="float: left; margin-right: 10px;" src="\@movieInfoRow.ImagePath" alt="movie poster image" />
+            <h5>@movieInfoRow.Title</h5>
+            <p>@movieInfoRow.Description</p>
+        </div>
+    </section>
+}

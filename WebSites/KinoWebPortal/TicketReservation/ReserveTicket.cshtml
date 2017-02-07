@@ -6,9 +6,12 @@
 <link rel="stylesheet" type="text/css" href="~/Content/datatables.min.css" />
 <script type="text/javascript" src="~/Scripts/datatables.min.js"></script>
 
+
+
 @{
     int movieID = Request.QueryString["movieID"].AsInt(0);
-
+    string imagePath, title, description;
+    
     if (movieID == 0)
     {
         <h2>Došlo je do greške. Molimo, pokušajte ponovo.</h2>
@@ -16,6 +19,13 @@
     else
     {
         var db = Database.Open("KinoDB");
+
+        var row = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", movieID);
+
+        imagePath = row.ImagePath;
+        title = row.Title;
+        description = row.Description;
+
         var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID JOIN Halls on Projections.HallID = Halls.HallID WHERE Projections.Time > GETDATE() AND Movies.MovieID = " + movieID;
         var records = db.Query(selectQueryString);
 
@@ -80,4 +90,18 @@
         }
 
     }
+}
+
+@section featured {
+    @{ 
+        var db = Database.Open("KinoDB");
+        var row = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", movieID);
+    }
+    <section class="featured">
+        <div class="content-wrapper">
+            <img width="120" height="150" style="float: left; margin-right: 10px;" src="\@row.ImagePath" alt="movie poster image" />
+            <h5>@row.Title</h5>
+            <p>@row.Description</p>
+        </div>
+    </section>
 }
