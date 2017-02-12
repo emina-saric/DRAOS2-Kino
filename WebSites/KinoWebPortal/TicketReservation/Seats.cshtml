@@ -1,11 +1,37 @@
 ﻿@{
-    
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Rezervacija sjedišta";
 }
 
-<table class="table">
+<h3>Rezervacija sjedišta</h3>
+<p>Izaberite sjedišta za koja želite rezervisati karte. Broj sjedišta označava broj karata.</p>
+<br />
+<div id="chart"></div>
+<button style="float: right" type="button">Dalje</button>
+<script type="text/javascript" src="https://app.seats.io/chart.js"></script>
+<script>
+    var seatIDs = [];
+    $(function () {
+        new seatsio.SeatingChart({
+            divId: "chart",
+            publicKey: "d22fdff4-7b0f-41c9-bbc4-045853925b6b",
+            event: "6fcc2010-8d1d-4120-9d04-d097448dc0b9",
+            onObjectSelected: function (object) {
+                seatIDs.push(object.id);
+            }
+        }).render();
+    });
+</script>
+
+
+@*<table class="table">
     <thead>
         <tr>
-            <td></td>
+            @for(int i=0;i<50;i++)
+            {
+                <td></td>
+            }
+            @*<td></td>
             <td>1</td>
             <td>2</td>
             <td>3</td>
@@ -16,6 +42,15 @@
         </tr>
     </thead>
     <tbody>
+        @for (int i = 0; i < 50; i++)
+        {
+            <tr>
+                @for (int j = 0; j < 50; j++)
+                {
+                    <td></td>
+                }
+            </tr>
+        }
         <tr>
             <td>A</td>
             <td style="background-color:red;"></td>
@@ -57,4 +92,4 @@
             <td style="background-color:blue;"></td>
         </tr>
     </tbody>
-</table>
+</table>*@
