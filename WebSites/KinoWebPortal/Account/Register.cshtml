@@ -47,6 +47,10 @@
                 // Insert email into the profile table
                 db.Execute("INSERT INTO UserProfile (Email) VALUES (@0)", email);
 
+                var uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                var rid = db.QuerySingle("SELECT RoleId FROM webpages_Roles WHERE RoleName = @0", "User");
+                db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid.UserId, rid.RoleId);
+
                 // Create and associate a new entry in the membership database.
                 // If successful, continue processing the request
                 try {
