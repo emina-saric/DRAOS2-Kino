@@ -1,0 +1,160 @@
+﻿@{
+    Page.Title = "Administracija";
+    //Layout = "Your Layout Page goes here";
+    Layout = "~/_SiteLayout.cshtml";
+}
+
+@if (User.IsInRole("Administration")) { 
+    <script>
+      $( function() {
+        $("#accordion").accordion();
+      } );
+    </script>
+
+    <script>
+        function filldata(uid, email, rid, role) {
+            $("#uid").val(uid);
+            $("#email").val(email);
+            $("#role").val(rid);
+            //$("#role").val(role);
+            //$("#admin").val(role === "Administration");
+            $("#admin").prop("checked", role === "Administration");
+            //$("#admin").prop({ 'checked': role === "Administration" });
+            $("#send").val("Izmijeni korisnika");
+            //$("#updateform").attr({ 'action': "/Administration/Users/Edit" });
+            $("#action").val("update");
+        }
+
+        function cleardata() {
+            $("#uid").val(0);
+            $("#email").val("");
+            $("#role").val("");
+            //$("#role").val(role);
+            $("#send").val("Dodaj");
+            $("#newpass").val("");
+            $("#confirmpass").val("");
+            $("#admin").prop("checked", false);
+            $("#send").val("Dodaj korisnika");
+            //$("#updateform").attr({ 'action': "/Administration/Users/Add" });
+            $("#action").val("add");
+        }
+
+        function del(uid, email) {
+            $("#uid").val(uid);
+            $("#email").val(email);
+
+            $("#action").val("delete");
+            $("#updateform").submit();
+        }
+    </script>
+    
+    //System.Diagnostics.Debugger.Break();
+    if (Request.QueryString["info"] != null) { 
+        <h1>@Request.QueryString["info"]</h1>
+    }
+
+    <div id="accordion">
+        @{
+            /*<h1>Korisnici</h1>
+            <form action="~/Administration/Users" method="post">
+                <a href="javascript:document.getElementById('adminpanelForm').submit()">Administracija</a>
+                @AntiForgery.GetHtml()
+            </form>*/
+        }
+        <h3>Projekcije</h3>
+        <div>
+        
+        </div>
+        <h3>Filmovi</h3>
+        <div>
+        
+        </div>
+        <h3>Korisnici</h3>
+        <div>
+            <div>
+                <div style="display:inline">
+                                    @*
+                                SELECT p.Name, v.Name
+                                FROM Production.Product p
+                                JOIN Purchasing.ProductVendor pv
+                                ON p.ProductID = pv.ProductID
+                                JOIN Purchasing.Vendor v
+                                ON pv.BusinessEntityID = v.BusinessEntityID
+                                WHERE ProductSubcategoryID = 15
+                                ORDER BY v.Name;
+                                    *@
+                    @{
+                        var db = Database.Open("StarterSite");
+                        var selectQueryString = @"SELECT u.UserId, u.Email, r.RoleId, r.RoleName 
+                                                FROM UserProfile u 
+                                                JOIN webpages_UsersInRoles ur ON u.UserId = ur.UserId
+                                                JOIN webpages_Roles r ON ur.RoleId = r.RoleId
+
+                                                WHERE r.RoleName = 'Administration' OR r.RoleName = 'Employee'
+
+                                                ORDER BY u.Email";
+                        var records = db.Query(selectQueryString);
+
+                        <ul>
+                        @foreach (var row in records)
+                        {
+                            <li>
+                                <a href="javascript:filldata('@row.UserId', '@row.Email', '@row.RoleId', '@row.RoleName')">@row.Email</a><a href="javascript:del('@row.UserId', '@row.Email')">x</a>
+                            </li>
+                        }
+                        </ul>
+                        <hr />
+                        selectQueryString = @"SELECT u.UserId, u.Email, r.RoleId, r.RoleName
+                                                FROM UserProfile u
+                                                JOIN webpages_UsersInRoles ur ON u.UserId = ur.UserId
+                                                JOIN webpages_Roles r ON ur.RoleId = r.RoleId
+
+                                                WHERE r.RoleName = 'User'
+
+                                                ORDER BY u.Email";
+                        records = db.Query(selectQueryString);
+
+                        <ul>
+                            @foreach (var row in records)
+                            {
+                                <li>
+                                    @row.Email <a href="javascript:del('@row.UserId', '@row.Email')">x</a>
+                                </li>
+                            }
+                        </ul>
+}
+                </div>
+                <div style="display:inline">
+                    <form id="updateform" action="~/Administration/Users" method="post">
+                        <input id="uid" name="uid" type="hidden" />
+                        <label>E-mail: <input id="email" type="text" name="email" /></label>
+                        @*<input id="rid" name="rid" type="hidden" />*@
+                        @*<label>
+                            Role:
+                            <select id="rid" name="rid">
+                                @{
+                                    selectQueryString = @"SELECT r.RoleId, r.RoleName
+                                                FROM webpages_Roles r
+                                                ORDER BY r.RoleName";
+                                    var records2 = db.Query(selectQueryString);
+                                    foreach (var row in records2)
+                                    {
+                                        <option value="@row.RoleId">@row.RoleName</option>
+                                        //<a href="javascript:filldata(@row.UserId, @row.Email, @row.RoleId, @row.RoleName)">@row.Email</a>
+                                    }
+                                }
+                            </select>
+                        </label>*@
+                        <label>Password: <input id="newpass" type="password" name="password" /></label>
+                        <label>Confirm password: <input id="confirmpass" type="password" name="confirmPassword" /></label>
+                        <label>Administrator <input id="admin" type="checkbox" name="admin" /></label>
+                        <input id="action" type="hidden" name="action" value="add" /> 
+                        @AntiForgery.GetHtml()
+                        <input id="send" type="submit" value="Dodaj korisnika" />
+                    </form>
+                    <button onclick="cleardata()">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

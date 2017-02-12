@@ -22,6 +22,13 @@
                         @if (WebSecurity.IsAuthenticated) {
                             <text>
                                 Dobrodošli, <a class="email" href="~/Account/Manage" title="Manage">@WebSecurity.CurrentUserName</a>!
+                                @if (User.IsInRole("Administration"))
+                                {
+                                    <form id="adminpanelForm" action="~/Administration" method="post" style="display:inline">
+                                        @AntiForgery.GetHtml()
+                                        <a href="javascript:document.getElementById('adminpanelForm').submit()">Administracija</a>
+                                    </form>
+                                }
                                 <form id="logoutForm" action="~/Account/Logout" method="post">
                                     @AntiForgery.GetHtml()
                                     <a href="javascript:document.getElementById('logoutForm').submit()">Odjava</a>
