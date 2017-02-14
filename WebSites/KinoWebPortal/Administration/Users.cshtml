@@ -4,165 +4,86 @@
     <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
 }
 @{
-    Layout = "~/_SiteLayout.cshtml";
-    Page.Title = "Register";
+    if (User.IsInRole("Administration")) { 
+        Layout = "~/_SiteLayout.cshtml";
+        Page.Title = "Users";
 
-    // Initialize general page variables
-    var email = "";
-    var password = "";
-    var confirmPassword = "";
-    var admin = false;
+        // Initialize general page variables
+        var email = "";
+        var password = "";
+        var confirmPassword = "";
+        var admin = false;
 
-    // Setup validation
-    Validation.RequireField("email", "You must specify an email address.");
-    //Validation.RequireField("password", "Password cannot be blank.");
-    Validation.Add("confirmPassword",
-        Validator.EqualsTo("password", "Password and confirmation password do not match."));
-    /*Validation.Add("password",
-        Validator.StringLength(
-            maxLength: Int32.MaxValue,
-            minLength: 6,
-            errorMessage: "Password must be at least 6 characters"));*/
+        // Setup validation
+        Validation.RequireField("email", "You must specify an email address.");
+        //Validation.RequireField("password", "Password cannot be blank.");
+        Validation.Add("confirmPassword",
+            Validator.EqualsTo("password", "Password and confirmation password do not match."));
+        /*Validation.Add("password",
+            Validator.StringLength(
+                maxLength: Int32.MaxValue,
+                minLength: 6,
+                errorMessage: "Password must be at least 6 characters"));*/
 
-    // If this is a POST request, validate and process data
-    if (IsPost)
-    {
-        AntiForgery.Validate();
-        email = Request.Form["email"];
-        password = Request.Form["password"];
-        confirmPassword = Request.Form["confirmPassword"];
-        admin = Request.Form["admin"] == "on";
-
-        // Validate the user's captcha answer
-        // if (!ReCaptcha.Validate("PRIVATE_KEY")) {
-        //     ModelState.AddError("recaptcha", "Captcha response was not correct");
-        // }
-
-        // If all information is valid, create a new account
-        if (Validation.IsValid())
+        // If this is a POST request, validate and process data
+        if (IsPost)
         {
-            // Insert a new user into the database
-            var db = Database.Open("StarterSite");
+            AntiForgery.Validate();
+            email = Request.Form["email"];
+            password = Request.Form["password"];
+            confirmPassword = Request.Form["confirmPassword"];
+            admin = Request.Form["admin"] == "on";
+
+            // Validate the user's captcha answer
+            // if (!ReCaptcha.Validate("PRIVATE_KEY")) {
+            //     ModelState.AddError("recaptcha", "Captcha response was not correct");
+            // }
+
+            // If all information is valid, create a new account
+            if (Validation.IsValid())
+            {
+                // Insert a new user into the database
+                var db = Database.Open("StarterSite");
             
-            <pre>Baza otvorena</pre>
-            <pre>@Request.Form["action"]</pre>
+                <pre>Baza otvorena</pre>
+                <pre>@Request.Form["action"]</pre>
             
-            if (Request.Form["action"] == "add") {
-                //System.Diagnostics.Debugger.Break();
-                <pre>Akcija add</pre>
+                if (Request.Form["action"] == "add") {
+                    //System.Diagnostics.Debugger.Break();
+                    <pre>Akcija add</pre>
                 
-                // Check if user already exists
-                var user = db.QuerySingle("SELECT Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                <pre>@user</pre>
+                    // Check if user already exists
+                    var user = db.QuerySingle("SELECT Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                    <pre>@user</pre>
     
-                if (user == null)
-                {
-                    // Insert email into the profile table
-                    db.Execute("INSERT INTO UserProfile (Email) VALUES (@0)", email);
-                    <pre>insertovan; admin: @admin</pre>
-                    if (admin)
+                    if (user == null)
                     {
-                        var uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                        var rid = db.QuerySingle("SELECT RoleId FROM webpages_Roles WHERE RoleName = @0", "Administration");
-                        db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid.UserId, rid.RoleId);
-                        <pre>@uid</pre>
-                        <pre>@rid</pre>
-                    }
-                    else
-                    {
-                        var uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                        var rid = db.QuerySingle("SELECT RoleId FROM webpages_Roles WHERE RoleName = @0", "Employee");
-                        db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid.UserId, rid.RoleId);
-                        <pre>@uid</pre>
-                        <pre>@rid</pre>
-                    }
-
-                    // Create and associate a new entry in the membership database.
-                    // If successful, continue processing the request
-                    try
-                    {
-                        bool requireEmailConfirmation = !WebMail.SmtpServer.IsEmpty();
-                        var token = WebSecurity.CreateAccount(email, password, requireEmailConfirmation);
-                        if (requireEmailConfirmation)
+                        // Insert email into the profile table
+                        db.Execute("INSERT INTO UserProfile (Email) VALUES (@0)", email);
+                        <pre>insertovan; admin: @admin</pre>
+                        if (admin)
                         {
-                            var hostUrl = Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
-                            var confirmationUrl = hostUrl + VirtualPathUtility.ToAbsolute("~/Account/Confirm?confirmationCode=" + HttpUtility.UrlEncode(token));
-
-                            WebMail.Send(
-                                to: email,
-                                subject: "Please confirm your account",
-                                body: "Your confirmation code is: " + token + ". Visit <a href=\"" + confirmationUrl + "\">" + confirmationUrl + "</a> to activate your account."
-                            );
-                        }
-
-                        if (requireEmailConfirmation)
-                        {
-                            // Thank the user for registering and let them know an email is on its way
-                            Response.Redirect("~/Account/Thanks");
+                            var uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                            var rid = db.QuerySingle("SELECT RoleId FROM webpages_Roles WHERE RoleName = @0", "Administration");
+                            db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid.UserId, rid.RoleId);
+                            <pre>@uid</pre>
+                            <pre>@rid</pre>
                         }
                         else
                         {
-                            // Navigate back to the homepage and exit
-                            //WebSecurity.Login(email, password);
-
-                            //Response.Redirect("~/Administration?info=User%20successfully%20added!");
-                            Response.Redirect("~/Administration?info=Uspješno%20ste%20dodali%20korisnika!");
+                            var uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                            var rid = db.QuerySingle("SELECT RoleId FROM webpages_Roles WHERE RoleName = @0", "Employee");
+                            db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid.UserId, rid.RoleId);
+                            <pre>@uid</pre>
+                            <pre>@rid</pre>
                         }
-                    }
-                    catch (System.Web.Security.MembershipCreateUserException e)
-                    {
-                        ModelState.AddFormError(e.Message);
-                    }
-                }
-                else
-                {
-                    // User already exists
-                    ModelState.AddFormError("Email address is already in use.");
-                }
-            }
-            else if (Request.Form["action"] == "update")
-            {
-                // ovdje update
-                // Check if user already exists
-                //System.Diagnostics.Debugger.Break();
-                var uid = db.QuerySingle("SELECT UserId, Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                // ako je email novi ili nepromijenjen
-                if (uid == null || uid.UserId == Int32.Parse(Request.Form["uid"]))
-                {
-                    // Insert email into the profile table
-                    db.Execute(@"UPDATE UserProfile
-                                SET Email=@0
-                                WHERE UserId=@1", email, Request.Form["uid"]);
 
-                    if (admin)
-                    {
-                        //int uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                        var rid = db.QuerySingle("SELECT RoleId, RoleName FROM webpages_Roles WHERE RoleName = @0", "Administration");
-                        //db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid, rid);
-                        db.Execute(@"UPDATE webpages_UsersInRoles
-                                SET RoleId=@0
-                                WHERE UserId=@1", rid.RoleId, Request.Form["uid"]);
-                    }
-                    else
-                    {
-                        //int uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
-                        var rid = db.QuerySingle("SELECT RoleId, RoleName FROM webpages_Roles WHERE RoleName = @0", "Employee");
-                        //db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid, rid);
-                        db.Execute(@"UPDATE webpages_UsersInRoles
-                                SET RoleId=@0
-                                WHERE UserId=@1", rid.RoleId, Request.Form["uid"]);
-                    }
-
-                    // Create and associate a new entry in the membership database.
-                    // If successful, continue processing the request
-                    if (password != "" && password == confirmPassword)
-                    {
+                        // Create and associate a new entry in the membership database.
+                        // If successful, continue processing the request
                         try
                         {
                             bool requireEmailConfirmation = !WebMail.SmtpServer.IsEmpty();
-                            //var token = WebSecurity.CreateAccount(email, password, requireEmailConfirmation);
-                            var token = WebSecurity.GeneratePasswordResetToken(email);
-                            var t = WebSecurity.ResetPassword(token, password);
+                            var token = WebSecurity.CreateAccount(email, password, requireEmailConfirmation);
                             if (requireEmailConfirmation)
                             {
                                 var hostUrl = Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
@@ -185,11 +106,8 @@
                                 // Navigate back to the homepage and exit
                                 //WebSecurity.Login(email, password);
 
-                                //Response.Redirect("~/");
-                                //if (!User.IsInRole("Administration")) { 
-                                //    Response.Redirect("~/");
-                                //}
-                                //Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20korisnika!");
+                                //Response.Redirect("~/Administration?info=User%20successfully%20added!");
+                                Response.Redirect("~/Administration?info=Uspješno%20ste%20dodali%20korisnika!");
                             }
                         }
                         catch (System.Web.Security.MembershipCreateUserException e)
@@ -197,36 +115,148 @@
                             ModelState.AddFormError(e.Message);
                         }
                     }
-                    if (!User.IsInRole("Administration"))
+                    else
                     {
-                        Response.Redirect("~/");
+                        // User already exists
+                        ModelState.AddFormError("Email address is already in use.");
                     }
-                    Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20korisnika!");
+                }
+                else if (Request.Form["action"] == "update")
+                {
+                    // ovdje update
+                    // Check if user already exists
+                    //System.Diagnostics.Debugger.Break();
+                    var uid = db.QuerySingle("SELECT UserId, Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                    // ako je email novi ili nepromijenjen
+                    if (uid == null || uid.UserId == Int32.Parse(Request.Form["uid"]))
+                    {
+                        // Insert email into the profile table
+                        db.Execute(@"UPDATE UserProfile
+                                    SET Email=@0
+                                    WHERE UserId=@1", email, Request.Form["uid"]);
+
+                        // mozda zabraniti ukidanje admina sam sebi?
+                        // && ili || - jaci ili slabiji uslov?
+                        // a mozda ovo za email i ne treba, samo komplikuje stvari...
+                        if (!(WebSecurity.CurrentUserId == Int32.Parse(Request.Form["uid"]) || WebSecurity.CurrentUserName == email))
+                        {
+                            if (admin)
+                            {
+                                //int uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                                var rid = db.QuerySingle("SELECT RoleId, RoleName FROM webpages_Roles WHERE RoleName = @0", "Administration");
+                                //db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid, rid);
+                                db.Execute(@"UPDATE webpages_UsersInRoles
+                                        SET RoleId=@0
+                                        WHERE UserId=@1", rid.RoleId, Request.Form["uid"]);
+                            }
+                            else
+                            {
+                                //int uid = db.QuerySingle("SELECT UserId FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
+                                var rid = db.QuerySingle("SELECT RoleId, RoleName FROM webpages_Roles WHERE RoleName = @0", "Employee");
+                                //db.Execute("INSERT INTO webpages_UsersInRoles VALUES (@0, @1)", uid, rid);
+                                db.Execute(@"UPDATE webpages_UsersInRoles
+                                        SET RoleId=@0
+                                        WHERE UserId=@1", rid.RoleId, Request.Form["uid"]);
+                            }
+                        }
+
+                        // Create and associate a new entry in the membership database.
+                        // If successful, continue processing the request
+                        if (password != "" && password == confirmPassword)
+                        {
+                            try
+                            {
+                                bool requireEmailConfirmation = !WebMail.SmtpServer.IsEmpty();
+                                //var token = WebSecurity.CreateAccount(email, password, requireEmailConfirmation);
+                                var token = WebSecurity.GeneratePasswordResetToken(email);
+                                var t = WebSecurity.ResetPassword(token, password);
+                                if (requireEmailConfirmation)
+                                {
+                                    var hostUrl = Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
+                                    var confirmationUrl = hostUrl + VirtualPathUtility.ToAbsolute("~/Account/Confirm?confirmationCode=" + HttpUtility.UrlEncode(token));
+
+                                    WebMail.Send(
+                                        to: email,
+                                        subject: "Please confirm your account",
+                                        body: "Your confirmation code is: " + token + ". Visit <a href=\"" + confirmationUrl + "\">" + confirmationUrl + "</a> to activate your account."
+                                    );
+                                }
+
+                                if (requireEmailConfirmation)
+                                {
+                                    // Thank the user for registering and let them know an email is on its way
+                                    Response.Redirect("~/Account/Thanks");
+                                }
+                                else
+                                {
+                                    // Navigate back to the homepage and exit
+                                    //WebSecurity.Login(email, password);
+
+                                    //Response.Redirect("~/");
+                                    //if (!User.IsInRole("Administration")) { 
+                                    //    Response.Redirect("~/");
+                                    //}
+                                    //Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20korisnika!");
+                                }
+                            }
+                            catch (System.Web.Security.MembershipCreateUserException e)
+                            {
+                                ModelState.AddFormError(e.Message);
+                            }
+                        }
+                        // provjeri je li jos uvijek admin... ili da zabranim ukidanje admina sam sebi?
+                        if (!User.IsInRole("Administration"))
+                        {
+                            Response.Redirect("~/");
+                        }
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20korisnika!");
+                    }
+                    else
+                    {
+                        Response.Redirect("~/Administration?info=Greška:%20Uneseni%20e-mail%20je%20zauzet!");
+                    }
+                }
+                else if (Request.Form["action"] == "delete")
+                {
+                    // && ili || - jaci ili slabiji uslov?
+                    if (WebSecurity.CurrentUserId == Int32.Parse(Request.Form["uid"]) || WebSecurity.CurrentUserName == email)
+                    {
+                        Response.Redirect("~/Administration?info=Ne%20možete%20obrisati%20sebe!");
+                    }
+                    else { 
+                        db.Execute("DELETE FROM webpages_Membership WHERE UserId=@0", Request.Form["uid"]);
+                        db.Execute("DELETE FROM webpages_UsersInRoles WHERE UserId=@0", Request.Form["uid"]);
+                        db.Execute("DELETE FROM UserProfile WHERE UserId=@0 AND Email=@1", Request.Form["uid"], email);
+                        //if (WebSecurity.CurrentUserId == Int32.Parse(Request.Form["uid"]) && WebSecurity.CurrentUserName == email)
+                        //{
+                        //    WebSecurity.Logout();
+                        //    Response.Redirect("~/");
+                        //}
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20obrisali%20korisnika!");
+                    }
                 }
                 else
                 {
-                    Response.Redirect("~/Administration?info=Greška:%20uneseni%20e-mail%20je%20zauzet!");
+                    // nepoznata akcija
+                    Response.Redirect("~/Administration?info=Greška:%20Nepoznata%20akcija!");
                 }
+                //db.Close();
             }
-            else if (Request.Form["action"] == "delete")
+            else
             {
-                if (WebSecurity.CurrentUserId == Int32.Parse(Request.Form["uid"]) && WebSecurity.CurrentUserName == email)
-                {
-                    Response.Redirect("~/Administration?info=Ne%20možete%20obrisati%20sebe!");
-                }
-                else { 
-                    db.Execute("DELETE FROM webpages_Membership WHERE UserId=@0", Request.Form["uid"]);
-                    db.Execute("DELETE FROM webpages_UsersInRoles WHERE UserId=@0", Request.Form["uid"]);
-                    db.Execute("DELETE FROM UserProfile WHERE UserId=@0 AND Email=@1", Request.Form["uid"], email);
-                    //if (WebSecurity.CurrentUserId == Int32.Parse(Request.Form["uid"]) && WebSecurity.CurrentUserName == email)
-                    //{
-                    //    WebSecurity.Logout();
-                    //    Response.Redirect("~/");
-                    //}
-                    Response.Redirect("~/Administration?info=Uspješno%20ste%20obrisali%20korisnika!");
-                }
+                // validacija nije uspjela
+                Response.Redirect("~/Administration?info=Greška:%20Uneseni%20podaci%20nisu%20validni!");
             }
         }
+        else {
+            // nije POST
+            Response.Redirect("~/Administration");
+        }
+    }
+    else
+    {
+        // nije admin
+        Response.Redirect("~/");
     }
 }
 <hgroup class="title">
@@ -242,7 +272,6 @@
         <ol>
             <li class="email">
                 <label for="email" @if (!ModelState.IsValidField("email")) { <text> class="error-label" </text> }>Email address</label>
-                <input type="text" id="email" name="email" value="@email" @Validation.For("email") />
                 @* Write any email validation errors to the page *@
                 @Html.ValidationMessage("email")
             </li>

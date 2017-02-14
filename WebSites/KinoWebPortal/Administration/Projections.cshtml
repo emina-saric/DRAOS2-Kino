@@ -1,6 +1,183 @@
 ﻿@{
-    Page.Title = "Title goes here";
-    //Layout = "Your Layout Page goes here";
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Projections";
+
+    if (User.IsInRole("Administration"))
+    {
+
+        const int NumOfTickAvailable = 50;
+    
+        // Initialize general page variables
+        var mid = "";
+        var hid = "";
+        var time = "";
+        var price = "";
+        var seats = "";
+        var action = "";
+        var poklapanje = false;
+
+        // Setup validation
+        //Validation.RequireField("email", "You must specify an email address.");
+
+        // If this is a POST request, validate and process data
+        if (IsPost)
+        {
+            AntiForgery.Validate();
+            mid = Request.Form["mid"];
+            hid = Request.Form["hid"];
+            time = Request.Form["time"];
+            price = Request.Form["price"];
+            seats = Request.Form["seats"];
+            action = Request.Form["action"];
+
+            // If all information is valid, create a new account
+            if (Validation.IsValid())
+            {
+                // Insert a new user into the database
+                var db = Database.Open("KinoDB");
+
+                if (action == "add")
+                {
+                    // Check if user already exists
+                    // veza vise na vise pa ova provjera nema smisla...
+                    // ili ima smisla ako se provjeri i vrijeme?
+                    // trebalo bi dodati i trajanje filma, pa bi se moglo osigurati i da nema preklapanja...
+                    // nekom drugom prilikom
+                    var projections = db.Query(@"SELECT * FROM Projections p, Movies m " + // sve projekcije u odabranoj sali...
+                                               @"WHERE m.MovieID = p.MovieID AND p.HallID = @0
+                                                 ORDER BY p.Time", hid);
+
+                    // ovo je super ali mi ne treba...
+                    /*foreach (var p in projections)
+                    {
+                        foreach (var q in projections)
+                        {
+                            // mozda prvo sve pretvoriti u int pa onda porediti?
+                            if (p.ProjectionsID != q.ProjectionsID &&
+                                ((q.Time >= p.Time && q.Time < p.Time.AddMinutes(p.Duration)) ||
+                                (p.Time >= q.Time && p.Time < q.Time.AddMinutes(q.Duration))))
+                            {
+                                poklapanje = true;
+                                // ovdje bi moglo brisanje q-a umjesto redirekta
+                                db.Execute("DELETE FROM Projections WHERE ProjectionsID = @0", q.ProjectionsID);
+                                Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                            }
+                        }
+                    }*/
+
+                    var dt = DateTime.Parse(time);
+                    var duration = db.QueryValue("SELECT Duration FROM Movies WHERE MovieID = @0", mid);
+                    foreach (var p in projections)
+                    {
+                        if (((p.Time >= dt && p.Time < dt.AddMinutes(duration)) ||
+                             (dt >= p.Time && dt < p.Time.AddMinutes(p.Duration))))
+                        {
+                            poklapanje = true;
+                            Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                        }
+                    }
+
+                    if (!poklapanje)
+                    {
+                        // Insert email into the profile table
+                        var id = db.QueryValue("SELECT MAX(ProjectionsID) FROM Projections");
+                        var next = id != null ? id + 1 : 0;
+
+                        db.Execute(@"INSERT INTO Projections (ProjectionsID, MovieID, HallID, Time, Price, NumberOfTicketsAvailable, Seats) 
+                                    VALUES (@0, @1, @2, @3, @4, @5, @6)", next, mid, hid, time, price, NumOfTickAvailable, seats);
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20dodali%20projekciju!");
+                    }
+                    else
+                    {
+                        // User already exists
+                        Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                    }
+                }
+                else if (action == "update")
+                { 
+                    // Check if user already exists
+                    //System.Diagnostics.Debugger.Break();
+                
+                    // veza je vise na vise pa ova provjera nema smisla!
+                    //var pid = db.QueryValue("SELECT ProjectionsID FROM Projections WHERE MovieID = @0 AND HallID = @1", mid, hid);
+                    //if (pid == null || pid == Request.Form["pid"]) { 
+                
+                    // provjeri poklapanje...
+                    var projections = db.Query(@"SELECT * FROM Projections p, Movies m " + // sve projekcije u odabranoj sali...
+                                               @"WHERE m.MovieID = p.MovieID AND p.HallID = @0
+                                                 ORDER BY p.Time", hid);
+
+                    // ovo je super ali mi ne treba...
+                    /*foreach (var p in projections)
+                    {
+                        foreach (var q in projections)
+                        {
+                            if (p.ProjectionsID != q.ProjectionsID &&
+                                ((q.Time >= p.Time && q.Time < p.Time.AddMinutes(p.Duration)) ||
+                                (p.Time >= q.Time && p.Time < q.Time.AddMinutes(q.Duration))))
+                            {
+                                poklapanje = true;
+                                Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                            }
+                        }
+                    }*/
+
+                    var dt = DateTime.Parse(time);
+                    var duration = db.QueryValue("SELECT Duration FROM Movies WHERE MovieID = @0", mid);
+                    foreach (var p in projections)
+                    {
+                        //if (((p.Time >= time && p.Time < new DateTime((long)Convert.ToUInt64(time)).AddMinutes(duration)) ||
+                        //     (time >= p.Time && time < p.Time.AddMinutes(p.Duration))))
+                        if (((p.Time >= dt && p.Time < dt.AddMinutes(duration)) ||
+                             (dt >= p.Time && dt < p.Time.AddMinutes(p.Duration))))
+                        {
+                            poklapanje = true;
+                            Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                        }
+                    }
+
+                    if (!poklapanje) { 
+                    // Insert email into the profile table
+                        db.Execute(@"UPDATE Projections
+                                    SET MovieID=@0, HallID=@1, Time=@2, Price=@3, NumberOfTicketsAvailable=@4, Seats=@5
+                                    WHERE ProjectionsID=@7", mid, hid, time, price, NumOfTickAvailable, seats, Request.Form["pid"]);
+
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20projekciju!");
+                    }
+                    else
+                    {
+                        Response.Redirect("~/Administration?info=Greška:%20Termin%20projekcije%20se%20poklapa%20sa%20nekim%20od%20postojećih!");
+                    }
+                }
+                else if (action == "delete")
+                {
+                    db.Execute("DELETE FROM Projections WHERE ProjectionsID=@0", Request.Form["pid"]);
+                    Response.Redirect("~/Administration?info=Uspješno%20ste%20obrisali%20projekciju!");
+                }
+                else
+                {
+                    // nepoznata akcija
+                    Response.Redirect("~/Administration?info=Greška:%20Nepoznata%20akcija!");
+                }
+                //db.Close();
+            }
+            else
+            {
+                // validacija nije uspjela
+                Response.Redirect("~/Administration?info=Greška:%20Uneseni%20podaci%20nisu%20validni!");
+            }
+        }
+        else
+        {
+            // nije POST
+            Response.Redirect("~/Administration");
+        }
+    }
+    else
+    {
+        // nije admin
+        Response.Redirect("~/");
+    }
 }
 
 <div>

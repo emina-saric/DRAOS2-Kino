@@ -1,8 +1,156 @@
 ﻿@{
-    Page.Title = "Title goes here";
-    //Layout = "Your Layout Page goes here";
-}
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Movies";
 
-<div>
-    
-</div>
+    if (User.IsInRole("Administration"))
+    {
+        // Initialize general page variables
+        var title = "";
+        var description = "";
+        var duration = "";
+        var imgpath = "";
+        var action = "";
+
+        // Setup validation
+        //Validation.RequireField("email", "You must specify an email address.");
+
+        // If this is a POST request, validate and process data
+        if (IsPost)
+        {
+            AntiForgery.Validate();
+            title = Request.Form["title"];
+            description = Request.Form["description"];
+            duration = Request.Form["duration"];
+            //imgpath = Request.Form["image"];
+            action = Request.Form["action"];
+
+            // If all information is valid, create a new account
+            if (Validation.IsValid())
+            {
+                // Insert a new user into the database
+                var db = Database.Open("KinoDB");
+
+                if (action == "add")
+                {
+                    //System.Diagnostics.Debugger.Break();
+                    // smjestiti negdje i sliku...
+                    //HttpPostedFile file = Request.Files["image"].InputStream;
+                    var file = Request.Files["image"];
+                    if (file != null && file.ContentLength > 0)
+                    {
+                        //string fname = Path.GetFileName(file.FileName);
+                        //file.SaveAs(Server.MapPath(Path.Combine("~/App_Data/", fname)));
+                        string fname = Path.GetFileName(file.FileName);
+                        file.SaveAs(Server.MapPath(Path.Combine("~/Images/Movies/", fname)));
+                        imgpath = "/Images/Movies/" + fname;
+                    }
+                
+                    //System.Diagnostics.Debugger.Break();
+
+                    // Check if user already exists
+                    var movie = db.QuerySingle("SELECT Title FROM Movies WHERE LOWER(Title) = LOWER(@0)", title);
+                    <pre>@movie</pre>
+
+                    if (movie == null)
+                    {
+                        // Insert email into the profile table
+                        var id = db.QueryValue("SELECT MAX(MovieID) FROM Movies");
+                        var next = id != null ? id+1 : 0;
+                    
+                        db.Execute("INSERT INTO Movies (MovieID, Title, Description, Duration, ImagePath) VALUES (@0, @1, @2, @3, @4)", next, title, description, duration, imgpath);
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20dodali%20film!");
+                    }
+                    else
+                    {
+                        // User already exists
+                        Response.Redirect("~/Administration?info=Greška:%20Film%20već%20postoji!");
+                    }
+                }
+                else if (action == "update")
+                {
+                    // smjestiti negdje i sliku...
+                    var file = Request.Files["image"];
+                    if (file != null && file.ContentLength > 0)
+                    {
+                        string fname = Path.GetFileName(file.FileName);
+                        file.SaveAs(Server.MapPath(Path.Combine("~/Images/Movies/", fname)));
+                        imgpath = "/Images/Movies/" + fname;
+                    }
+                
+                    // Check if user already exists
+                    //System.Diagnostics.Debugger.Break();
+                    var mid = db.QuerySingle("SELECT MovieID, Title FROM Movies WHERE LOWER(Title) = LOWER(@0)", title);
+                    // ako je email novi ili nepromijenjen
+                    if (mid == null || mid.MovieID == Int32.Parse(Request.Form["mid"]))
+                    {
+                        // Insert email into the profile table
+                        db.Execute(@"UPDATE Movies
+                                    SET Title=@0, Description=@1, Duration=@2
+                                    WHERE MovieID=@2", title, description, duration, Request.Form["mid"]);
+                        if (imgpath != "") { 
+                            // mozda ne bi bilo lose prvo obrisati staru sliku
+                            var oldpath = db.QueryValue("SELECT ImagePath FROM Movies WHERE MovieID=@0", Request.Form["mid"]);
+                            //System.Diagnostics.Debugger.Break();
+                            var test = Server.MapPath(Path.Combine("~", oldpath));
+                            File.Delete(test);
+                            //File.Delete(Server.MapPath(Path.Combine("~", oldpath)));
+                        
+                            db.Execute(@"UPDATE Movies
+                                         SET ImagePath=@0
+                                         WHERE MovieID=@1", imgpath, Request.Form["mid"]);
+                        }
+
+                        Response.Redirect("~/Administration?info=Uspješno%20ste%20izmijenili%20film!");
+                    }
+                    else
+                    {
+                        Response.Redirect("~/Administration?info=Greška:%20uneseni%20e-mail%20je%20zauzet!");
+                    }
+                }
+                else if (action == "delete")
+                {
+                    // trebalo bi prvo obrisati sliku !
+                    var ds = db.QueryValue("SELECT m.ImagePath FROM Movies m WHERE m.MovieID=@0", Request.Form["mid"]);
+                    //File.Delete(ds);
+
+                    //System.Diagnostics.Debugger.Break();
+                    var test = Server.MapPath(Path.Combine("~", ds));
+                
+                    //File.Delete(Server.MapPath(Path.Combine("~", ds)));
+                    File.Delete(test);
+                
+                    db.Execute("DELETE FROM Projections WHERE MovieID=@0", Request.Form["mid"]);
+                    db.Execute("DELETE FROM Movies WHERE MovieID=@0", Request.Form["mid"]);
+                    Response.Redirect("~/Administration?info=Uspješno%20ste%20obrisali%20film!");
+                }
+                else 
+                {
+                    // nepoznata akcija
+                    Response.Redirect("~/Administration?info=Greška:%20Nepoznata%20akcija!");
+                }
+                //db.Close();
+            }
+            else
+            {
+                // validacija nije uspjela
+                Response.Redirect("~/Administration?info=Greška:%20Uneseni%20podaci%20nisu%20validni!");
+            }
+        }
+        else
+        {
+            // nije POST
+            if (User.IsInRole("Administration"))
+            {
+                Response.Redirect("~/Administration");
+            }
+            else { 
+                Response.Redirect("~/");
+            }
+        }
+    }
+    else
+    {
+        // nije admin
+        Response.Redirect("~/");
+    }
+}

@@ -7,7 +7,14 @@
 @if (User.IsInRole("Administration")) { 
     <script>
       $( function() {
-        $("#accordion").accordion();
+          $("#accordion").accordion();
+          //$("#datepicker").datepicker();
+          //$("#time").datepicker({
+          //    dateFormat: "dd.mm.yy"
+          //});
+          $("#time").datetimepicker({
+                format: "DD.MM.YYYY HH:mm"
+          });
       } );
     </script>
 
@@ -42,9 +49,84 @@
         function del(uid, email) {
             $("#uid").val(uid);
             $("#email").val(email);
-
             $("#action").val("delete");
             $("#updateform").submit();
+        }
+
+        /*<form id="updatemovie" action="~/Administration/Movies" method="post">
+                    <input id="mid" name="mid" type="hidden" />
+                    <label>Title: <input id="title" type="text" name="title" /></label>
+                    <label>Description: <br /><textarea id="description" name="description"></textarea></label>
+                    <label>Image: <img id="preview" /></label>
+                    <label>Upload: <input id="image" type="image" name="image" /></label>
+                    <input id="movieaction" type="hidden" name="action" value="add" />
+                    <input id="sendmovie" type="submit" value="Dodaj film" />
+                </form>
+                <button onclick="clearmovie()">Clear</button>*/
+
+        function fillmovie(mid, title, desc, duration, imgpath) {
+            $("#mid").val(mid);
+            $("#title").val(title);
+            $("#description").val(desc);
+            $("#description").html(desc);
+            $("#duration").val(duration);
+            $("#preview").attr({ 'src': imgpath });
+            $("#image").val(imgpath);
+            $("#sendmovie").val("Izmijeni film");
+            $("#movieaction").val("update");
+        }
+
+        function clearmovie() {
+            $("#mid").val(0);
+            $("#title").val("");
+            $("#description").val("");
+            $("#description").html("");
+            $("#duration").val("");
+            $("#preview").removeAttr("src");
+            $("#image").val("");
+            $("#sendmovie").val("Dodaj film");
+            $("#movieaction").val("add");
+        }
+
+        function delmovie(mid, title) {
+            $("#mid").val(mid);
+            $("#title").val(title);
+            $("#movieaction").val("delete");
+            $("#updatemovie").submit();
+        }
+
+        function fillproj(pid, mid, hid, time, price, seats) {
+            //debugger
+            $("#pid").val(mid);
+            $("#movie").val(mid);
+            $("#hall").val(hid);
+            $("#time").val(time);
+            $("#price").val(price);
+            // mozda ovo izbjeci u administraciji?
+            $("seats").val(seats);
+            $("#sendproj").val("Izmijeni projekciju");
+            $("#projaction").val("update");
+        }
+
+        function clearproj() {
+            $("#pid").val(0);
+            $("#movie").val("");
+            $("#hall").val("");
+            $("#time").html("");
+            $("#price").val("");
+            // mozda ovo izbjeci u administraciji?
+            // CSV: 0 - slobodno, 1 - oznaceno, 2 - rezervisano, 3 - potvrdjeno (4 - potvrdjeno i placeno ?)
+            var defaultseats = "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0";
+            alert(defaultseats.length); // 50 + 49 = ?
+            $("seats").val(defaultseats);
+            $("#sendproj").val("Dodaj projekciju");
+            $("#projaction").val("add");
+        }
+
+        function delproj(pid) {
+            $("#pid").val(pid);
+            $("#projaction").val("delete");
+            $("#updateproj").submit();
         }
     </script>
     
@@ -63,12 +145,131 @@
         }
         <h3>Projekcije</h3>
         <div>
-        
+            <div style="display:inline">
+                @{
+                    var db2 = Database.Open("KinoDB");
+                    var selectQueryString2 = @"SELECT * FROM Movies m, Projections p, Halls h 
+                                               WHERE p.MovieID = m.MovieID AND p.HallID = h.HallID 
+                                               ORDER BY p.Time, m.Title, h.HallName";
+                    var records2 = db2.Query(selectQueryString2);
+                    
+                    var halls = db2.Query("SELECT HallID, HallName FROM Halls ORDER BY HallName");
+                    var movies = db2.Query("SELECT MovieID, Title FROM Movies ORDER BY Title");
+
+                        @*<ul>
+        @foreach (var row in records2)
+        {
+            <li>
+                <a href="javascript:fillproj('@row.ProjectionsID', '@row.MovieID', '@row.HallID', '@row.Time', '@row.Price', '@row.Seats')">@row.Title</a><a href="javascript:delproj('@row.ProjectionsID')">x</a>
+            </li>
+        }
+    </ul>*@
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Naslov</td>
+                                <td>Početak</td>
+                                <td>Trajanje</td>
+                                <td>Sala</td>
+                                <td>Cijena</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in records2)
+                            { 
+                                @** na click ili na dvostruki click? *@
+                                <tr onclick="javascript:fillproj('@row.ProjectionsID', '@row.MovieID', '@row.HallID', '@row.Time', '@row.Price', '@row.Seats')" ondblclick="javascript: fillproj('@row.ProjectionsID', '@row.MovieID', '@row.HallID', '@row.Time', '@row.Price', '@row.Seats')">
+                                    <td>@row.Title</td>
+                                    <td>@row.Time</td>
+                                    <td>@row.Duration</td>
+                                    <td>@row.HallName</td>
+                                    <td>@row.Price</td>
+                                    <td><a href="javascript:delproj('@row.ProjectionsID')">x</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @** Date, Hour, Minute *@
+                    
+                    db2.Close();
+                }
+            </div>
+            <div style="display:inline">
+                <form id="updateproj" action="~/Administration/Projections" method="post">
+                    <input id="pid" name="pid" type="hidden" />
+                    <label>Movie: <select id="movie" type="text" name="mid">
+                            @foreach (var movie in movies)
+                            {
+                                <option value="@movie.MovieID">@movie.Title</option>
+                            }
+                        </select></label>
+                    <label>Hall: <select id="hall" type="text" name="hid">
+                            @foreach (var hall in halls)
+                            {
+                                <option value="@hall.HallID">@hall.HallName</option>
+                            }
+                        </select>
+                    </label>
+                    <div id="datetime" style="position: relative">
+                        <label>Time: <input id="time" type="text" name="time" /></label>
+                    </div>
+                    <label>Price: <input id="price" type="number" name="price" /></label>
+                    <input id="seats" type="hidden" name="seats" />
+                    <input id="projaction" type="hidden" name="action" value="add" />
+                    @AntiForgery.GetHtml()
+                    <input id="sendproj" type="submit" value="Dodaj projekciju" />
+                </form>
+                <button onclick="clearproj()">Clear</button>
+                <div class="container">
+                    <div class="row">
+                        <div class='col-sm-6' style="position:relative">
+                            <input type='text' class="form-control" id='datetimepicker4' />
+                        </div>
+                        <script type="text/javascript">
+                            $(function () {
+                                $('#datetimepicker4').datetimepicker();
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
         </div>
         <h3>Filmovi</h3>
         <div>
-        
+            <div style="display:inline">
+                @{
+                    var db1 = Database.Open("KinoDB");
+                    var selectQueryString1 = "SELECT * FROM Movies m ORDER BY m.Title";
+                    var records1 = db1.Query(selectQueryString1);
+
+                    <ul>
+                        @foreach (var row in records1)
+                        {
+                            <li>
+                                <a href="javascript:fillmovie('@row.MovieID', '@row.Title', '@row.Description', '@row.Duration', '@row.ImagePath.Replace("\\", "/")')">@row.Title</a><a href="javascript:delmovie('@row.MovieID', '@row.Title')">x</a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div style="display:inline">
+                <form id="updatemovie" action="~/Administration/Movies" method="post" enctype="multipart/form-data">
+                    <input id="mid" name="mid" type="hidden" />
+                    <label>Title: <input id="title" type="text" name="title" /></label>
+                    <label>Duration: <input id="duration" type="text" name="duration" /></label>
+                    <label>Description: <br /><textarea id="description" name="description"></textarea></label>
+                    <label>Image: <img id="preview" /></label>
+                    @*<label>Upload: <input id="image" type="image" name="image" /></label>*@
+                    <label>Upload: <input id="image" type="file" name="image" /></label>
+                    <input id="movieaction" type="hidden" name="action" value="add" />
+                    @AntiForgery.GetHtml()
+                    <input id="sendmovie" type="submit" value="Dodaj film" />
+                </form>
+                <button onclick="clearmovie()">Clear</button>
+            </div>
         </div>
+
         <h3>Korisnici</h3>
         <div>
             <div>
@@ -157,4 +358,9 @@
             </div>
         </div>
     </div>
+}
+else
+{
+    // nije admin
+    Response.Redirect("~/");
 }
