@@ -7,89 +7,28 @@
 <p>Izaberite sjedišta za koja želite rezervisati karte. Broj sjedišta označava broj karata.</p>
 <br />
 <div id="chart"></div>
-<button style="float: right" type="button">Dalje</button>
+<button id="daljeBtn" style="float: right" type="button">Dalje</button>
+<form id="submitSeatsForm" action="~/TicketReservation/ReservationSummary.cshtml" method="post">
+    @Html.Hidden("seatIDs", null, new { id = "seatIDs" })
+    @Html.Hidden("projectionID", Request.Form["projectionID"])
+</form>
 <script type="text/javascript" src="https://app.seats.io/chart.js"></script>
 <script>
     var seatIDs = [];
     $(function () {
+        document.getElementById("daljeBtn").addEventListener("click", function () {
+            document.getElementById("seatIDs").value = seatIDs.join(",");
+            $("#submitSeatsForm").submit();
+        });
+
         new seatsio.SeatingChart({
             divId: "chart",
             publicKey: "d22fdff4-7b0f-41c9-bbc4-045853925b6b",
             event: "6fcc2010-8d1d-4120-9d04-d097448dc0b9",
             onObjectSelected: function (object) {
                 seatIDs.push(object.id);
+                console.log("Added " + object.id);
             }
         }).render();
     });
 </script>
-
-
-@*<table class="table">
-    <thead>
-        <tr>
-            @for(int i=0;i<50;i++)
-            {
-                <td></td>
-            }
-            @*<td></td>
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-            <td></td>
-            <td>4</td>
-            <td>5</td>
-            <td>6</td>
-        </tr>
-    </thead>
-    <tbody>
-        @for (int i = 0; i < 50; i++)
-        {
-            <tr>
-                @for (int j = 0; j < 50; j++)
-                {
-                    <td></td>
-                }
-            </tr>
-        }
-        <tr>
-            <td>A</td>
-            <td style="background-color:red;"></td>
-            <td id="thisGoesRed"></td>
-            <td></td>
-            <td></td>
-            <td style="background-color:red;"></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>B</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td style="background-color:red;"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>C</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>D</td>
-            <td></td>
-            <td></td>
-            <td style="background-color:blue;"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td style="background-color:blue;"></td>
-        </tr>
-    </tbody>
-</table>*@

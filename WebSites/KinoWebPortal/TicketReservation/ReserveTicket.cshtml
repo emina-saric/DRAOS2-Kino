@@ -6,8 +6,6 @@
 <link rel="stylesheet" type="text/css" href="~/Content/datatables.min.css" />
 <script type="text/javascript" src="~/Scripts/datatables.min.js"></script>
 
-
-
 @{
     int movieID = Request.QueryString["movieID"].AsInt(0);
     string imagePath, title, description;
@@ -38,8 +36,8 @@
         }
         else
         {
-            Validation.RequireField("numberOfTickets", "Ovo polje je obavezno.");
-            <form id="reserveTicketForm" action="~/TicketReservation/ReservationSummary" method="post">
+            //Validation.RequireField("numberOfTickets", "Ovo polje je obavezno.");
+            <form id="reserveTicketForm" action="~/TicketReservation/Seats" method="post">
                 <table id="projectionsTable" class="display">
                     <thead>
                         <tr>
@@ -62,9 +60,9 @@
                     </tbody>                    
                 </table>
 
-                <span>Unesite broj karata:&nbsp;&nbsp;</span>@Html.TextBox("numberOfTickets", 1) <small>*</small>
+                @*<span>Unesite broj karata:&nbsp;&nbsp;</span>@Html.TextBox("numberOfTickets", 1) <small>*</small>
                 <br />
-                <small style="font-size: 0.6em;">* označava obavezno polje.</small>
+                <small style="font-size: 0.6em;">* označava obavezno polje.</small>*@
             </form>
 
             <script>

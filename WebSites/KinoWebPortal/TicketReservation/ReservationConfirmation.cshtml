@@ -7,6 +7,7 @@
     int projectionID = Request.Form["ProjectionsID"].AsInt(0);
     int numberOfTickets = Request.Form["numberOfTickets"].AsInt(0);
     int price = Request.Form["Price"].AsInt(0);
+    string seatIDs = Request.Form["seatIDs"];
 
     int numberOfAvailableTickets;
 
@@ -14,16 +15,46 @@
     var getNumberOfAvailableTicketsString = "SELECT NumberOfTicketsAvailable FROM Projections WHERE Projections.ProjectionsID = @0";
     numberOfAvailableTickets = db.QueryValue(getNumberOfAvailableTicketsString, projectionID);
 
-    if (numberOfAvailableTickets>numberOfTickets)
+    if (numberOfAvailableTickets > numberOfTickets)
     {
-        var selectQueryString = "UPDATE Projections SET NumberOfTicketsAvailable=@0 WHERE Projections.ProjectionsID = @1";
-        db.Query(selectQueryString, numberOfAvailableTickets - numberOfTickets, projectionID);
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://app.seats.io/api/book");
+        request.Method = "POST";
+        request.ContentType = "application/json";
+        Stream dataStream = request.GetRequestStream();
 
-        <p>Čestitamo! Vaša rezervacija je uspješno zabilježena!<br />
-    Nemojte zaboraviti doći po Vaše karte najkasnije sat prije prikazivanja projekcije.</p>
-    <form action="/" method="get">
-        <button type="submit">Povratak na početnu stranicu</button>
-    </form>
+        string dataToSend = Json.Encode(new { objects = seatIDs.Split(','), eventKey = "6fcc2010-8d1d-4120-9d04-d097448dc0b9", secretKey = "867688ef-597d-441b-9d37-92e517caa896" });
+        byte[] byteArray = System.Text.Encoding.ASCII.GetBytes(dataToSend);
+
+        //request.ContentLength = byteArray.Length;
+        dataStream.Write(byteArray, 0, byteArray.Length);
+        dataStream.Close();
+        WebResponse response = request.GetResponse();
+
+        if (((HttpWebResponse)response).StatusCode == HttpStatusCode.OK)
+        {
+            //Stream responseData = response.GetResponseStream();
+            //StreamReader reader = new StreamReader(dataStream);
+            //string responseFromServer = reader.ReadToEnd();
+            //Console.WriteLine(responseFromServer);
+            //reader.Close();
+            //dataStream.Close();
+            //response.Close();
+
+            var selectQueryString = "UPDATE Projections SET NumberOfTicketsAvailable=@0 WHERE Projections.ProjectionsID = @1";
+            db.Query(selectQueryString, numberOfAvailableTickets - numberOfTickets, projectionID);
+
+            <p>
+                Čestitamo! Vaša rezervacija je uspješno zabilježena!<br />
+                Nemojte zaboraviti doći po Vaše karte najkasnije sat prije prikazivanja projekcije.
+            </p>
+            <form action="/" method="get">
+                <button type="submit">Povratak na početnu stranicu</button>
+            </form>
+        }
+        else
+        {
+            <p>Došlo je do greške prilikom kontaktiranja servera za rezervaciju karata. Molimo, pokušajte ponovo.</p>
+        }
     }
     else
     {

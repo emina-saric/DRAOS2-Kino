@@ -5,7 +5,8 @@
 
 @{
     int projectionID = Request.Form["projectionID"].AsInt();
-    int numberOfTickets = Request.Form["numberOfTickets"].AsInt();
+    string seatIDs = Request.Form["seatIDs"];
+    int numberOfTickets = seatIDs.Split(',').Length;
 
     var db = Database.Open("KinoDB");
     var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID JOIN Halls on Projections.HallID = Halls.HallID WHERE Projections.ProjectionsID = " + projectionID.ToString();
@@ -22,6 +23,7 @@
     @Html.Hidden("ProjectionsID", projectionID)
     @Html.Hidden("numberOfTickets", numberOfTickets)
     @Html.Hidden("Price", row.Price)
+    @Html.Hidden("seatIDs", seatIDs)
     <button type="submit">Potvrdi</button>
 </form>
 
@@ -37,3 +39,9 @@
         </div>
     </section>
 }
+
+<script>
+    $(function () {
+
+    });
+</script>
