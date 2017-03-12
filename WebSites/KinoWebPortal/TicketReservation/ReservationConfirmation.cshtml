@@ -12,8 +12,8 @@
     int numberOfAvailableTickets;
 
     var db = Database.Open("KinoDB");
-    var getNumberOfAvailableTicketsString = "SELECT NumberOfTicketsAvailable FROM Projections WHERE Projections.ProjectionsID = @0";
-    numberOfAvailableTickets = db.QueryValue(getNumberOfAvailableTicketsString, projectionID);
+    var getNumberOfAvailableTickets = "SELECT NumberOfTicketsAvailable FROM Projections WHERE Projections.ProjectionsID = @0";
+    numberOfAvailableTickets = db.QueryValue(getNumberOfAvailableTickets, projectionID);
 
     if (numberOfAvailableTickets > numberOfTickets)
     {
@@ -25,26 +25,32 @@
         string dataToSend = Json.Encode(new { objects = seatIDs.Split(','), eventKey = "6fcc2010-8d1d-4120-9d04-d097448dc0b9", secretKey = "867688ef-597d-441b-9d37-92e517caa896" });
         byte[] byteArray = System.Text.Encoding.ASCII.GetBytes(dataToSend);
 
-        //request.ContentLength = byteArray.Length;
         dataStream.Write(byteArray, 0, byteArray.Length);
         dataStream.Close();
         WebResponse response = request.GetResponse();
 
         if (((HttpWebResponse)response).StatusCode == HttpStatusCode.OK)
         {
-            //Stream responseData = response.GetResponseStream();
-            //StreamReader reader = new StreamReader(dataStream);
-            //string responseFromServer = reader.ReadToEnd();
-            //Console.WriteLine(responseFromServer);
-            //reader.Close();
-            //dataStream.Close();
-            //response.Close();
+            var updateProjectionsQuery = "UPDATE Projections SET NumberOfTicketsAvailable=@0 WHERE Projections.ProjectionsID = @1";
+            db.Query(updateProjectionsQuery, numberOfAvailableTickets - numberOfTickets, projectionID);
 
-            var selectQueryString = "UPDATE Projections SET NumberOfTicketsAvailable=@0 WHERE Projections.ProjectionsID = @1";
-            db.Query(selectQueryString, numberOfAvailableTickets - numberOfTickets, projectionID);
+            string uniqueCode = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+            string updateReservationsQuery;
+            if (WebSecurity.IsAuthenticated)
+            {
+                updateReservationsQuery = "INSERT INTO Reservations (UserID, UniqueCode, ProjectionID, Seats) VALUES (@0, @1, @2, @3)";
+                db.Execute(updateReservationsQuery, WebSecurity.CurrentUserId, uniqueCode, projectionID, seatIDs);
+            }
+            else
+            {
+                updateReservationsQuery = "INSERT INTO Reservations (UniqueCode, ProjectionID, Seats) VALUES (@0, @1, @2)";
+                db.Execute(updateReservationsQuery, uniqueCode, projectionID, seatIDs);
+            }
 
             <p>
                 Čestitamo! Vaša rezervacija je uspješno zabilježena!<br />
+                Vaš jedinstveni kod je: @uniqueCode
+                Ovaj kod imate samo Vi i služi kao dokaz da ste zbilja Vi napravili rezervaciju karte, kada istu htjednete iskoristiti.
                 Nemojte zaboraviti doći po Vaše karte najkasnije sat prije prikazivanja projekcije.
             </p>
             <form action="/" method="get">

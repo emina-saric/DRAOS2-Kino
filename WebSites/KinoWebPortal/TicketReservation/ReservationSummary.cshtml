@@ -14,17 +14,17 @@
 }
 
     @Html.Label("Film:") @row.Title
-    @Html.Label("Vrijeme projekcija:") @row.Time
+    @Html.Label("Vrijeme projekcije:") @row.Time
     @Html.Label("Broj karata:") @numberOfTickets
-    @Html.Label("Cijena pojedinačne karte:") @row.Price
-    @Html.Label("Ukupna cijena:") @(row.Price*numberOfTickets)
+    @Html.Label("Cijena pojedinačne karte:") @row.Price KM
+    @Html.Label("Ukupna cijena:") @(row.Price*numberOfTickets) KM
 
 <form action="ReservationConfirmation" method="post">
     @Html.Hidden("ProjectionsID", projectionID)
     @Html.Hidden("numberOfTickets", numberOfTickets)
     @Html.Hidden("Price", row.Price)
     @Html.Hidden("seatIDs", seatIDs)
-    <button type="submit">Potvrdi</button>
+    <button style="margin-top: 10px" type="submit">Potvrdi</button>
 </form>
 
 @section featured {
