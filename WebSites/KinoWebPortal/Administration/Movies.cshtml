@@ -44,8 +44,6 @@
                         file.SaveAs(Server.MapPath(Path.Combine("~/Images/Movies/", fname)));
                         imgpath = "/Images/Movies/" + fname;
                     }
-                
-                    //System.Diagnostics.Debugger.Break();
 
                     // Check if user already exists
                     var movie = db.QuerySingle("SELECT Title FROM Movies WHERE LOWER(Title) = LOWER(@0)", title);
