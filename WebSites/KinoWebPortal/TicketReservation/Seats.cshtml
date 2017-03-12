@@ -28,6 +28,9 @@
             onObjectSelected: function (object) {
                 seatIDs.push(object.id);
                 console.log("Added " + object.id);
+            },
+            messages: {
+                unavailableSeat: "Ovo sjedište je zauzeto."
             }
         }).render();
     });

@@ -1,0 +1,40 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    Page.Title = "Registracija";
+
+    var db = Database.Open("KinoDB");
+    var selectQueryString = "SELECT * FROM Reservations JOIN Projections ON Reservations.ProjectionID = Projections.ProjectionsID JOIN Movies ON Projections.MovieID = Movies.MovieID WHERE Reservations.UserID=@0";
+    var records = db.Query(selectQueryString, WebSecurity.CurrentUserId);
+
+    if (records.Count() == 0)
+    {
+        <h2>
+            Niste napravili nijednu rezervaciju.
+            Da biste vidjeli dostupne filmove, kliknite <a href="~/">ovdje</a>.
+        </h2>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Naziv filma</th>
+                    <th>Vrijeme projekcije</th>
+                    <th>Rezervisana sjedišta</th>
+                    <th>Jedinstveni kod</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in records)
+                {
+                    <tr>
+                        <td>@row.Title</td>
+                        <td>@row.Time</td>
+                        <td>@row.Seats</td>
+                        <td>@row.UniqueCode</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

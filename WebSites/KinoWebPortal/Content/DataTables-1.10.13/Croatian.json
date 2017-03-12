@@ -1,5 +1,3 @@
-
-
 {
     "sEmptyTable":      "Nema podataka u tablici",
     "sInfo":            "Prikazano _START_ do _END_ od _TOTAL_ rezultata",
@@ -18,8 +16,15 @@
         "sNext":        "Naprijed",
         "sLast":        "Zadnja"
     },
-    "oAria": {
-        "sSortAscending":  ": aktiviraj za rastući poredak",
-        "sSortDescending": ": aktiviraj za padajući poredak"
+  "oAria": {
+    "sSortAscending": ": aktiviraj za rastući poredak",
+    "sSortDescending": ": aktiviraj za padajući poredak"
+  },
+  "select": {
+    "rows": {
+      "_": "%d redova selektirano",
+      "0": "Kliknite na red da ga selektirate",
+      "1": "1 red selektiran"
     }
+  }
 }

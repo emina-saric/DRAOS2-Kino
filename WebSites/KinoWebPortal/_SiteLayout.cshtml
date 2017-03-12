@@ -2,26 +2,23 @@
 <html lang="bs">
     <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+
         <title>@Page.Title - Kino web portal&trade;</title>
+        
         <link href="~/Content/themes/base/jquery.ui.all.css" rel="stylesheet" type="text/css" />
         <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
         <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
         <script src="~/Scripts/jquery-1.10.2.min.js"></script>
         <script src="~/Scripts/jquery-ui-1.10.3.js"></script>
-        <script src="~/Scripts/modernizr-2.6.2.js"></script>
-        <meta name="viewport" content="width=device-width" />
-        <script type="text/javascript" src="~/scripts/moment.min.js"></script>
-        <script type="text/javascript" src="~/scripts/bootstrap.min.js"></script>
-        <script type="text/javascript" src="~/scripts/bootstrap-datetimepicker.min.js"></script>
-        <!-- include your less or built css files  -->
-        <!--
-    bootstrap-datetimepicker-build.less will pull in "../bootstrap/variables.less" and "bootstrap-datetimepicker.less";
-    or
-    <link rel="stylesheet" href="/Content/bootstrap-datetimepicker.css" />
-    -->
-
-    </head>
+        <script src="~/Scripts/modernizr-2.6.2.js"></script>        
+        <script src="~/scripts/moment.min.js"></script>
+        <script src="~/scripts/bootstrap.min.js"></script>
+        <script src="~/scripts/bootstrap-datetimepicker.min.js"></script>
+        <!-- include your less or built css files -->
+        <!--bootstrap-datetimepicker-build.less will pull in "../bootstrap/variables.less" and "bootstrap-datetimepicker.less"; or <link rel="stylesheet" href="/Content/bootstrap-datetimepicker.css" />-->  
+        </head>
     <body>
         <header>
             <div class="content-wrapper">
@@ -54,6 +51,10 @@
                     </section>
                     <nav>
                         <ul id="menu">
+                            @if (WebSecurity.IsAuthenticated)
+                            {
+                                <li><a href="~/Account/ReservationHistory">Historija rezervacija</a></li>
+                            }
                             <li><a href="~/">Početna stranica</a></li>
                             <li><a href="~/About">O nama</a></li>
                             <li><a href="~/Contact">Kontakt</a></li>

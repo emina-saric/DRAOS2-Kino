@@ -43,14 +43,14 @@
                         <tr>
                             <th>Vrijeme projekcije</th>
                             <th>Sala</th>
-                            <th>Cijena</th>
+                            <th>Cijena [KM]</th>
                             <th style="display: none;"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var record in records)
                         {
-                            <tr>
+                            <tr style="cursor: pointer">
                                 <td>@record.Time</td>
                                 <td>@record.HallName</td>
                                 <td>@record.Price</td>
@@ -78,7 +78,7 @@
                             extend: 'selectedSingle',
                             text: 'Rezerviši',
                             action: function (e, dt, button, config) {
-                                console.log(dt.row({ selected: true }).data());
+                                //console.log(dt.row({ selected: true }).data());
                                 document.getElementById("reserveTicketForm").submit();
                             }
                         }]          
