@@ -67,21 +67,24 @@
 
             <script>
                 $(function () {
-                    $('#projectionsTable').DataTable({
+                    var dt = $('#projectionsTable').DataTable({
                         dom: 'Bfrtip',
                         select: "single",
                         language: {
                             url: "/Content/DataTables-1.10.13/Croatian.json"
                         },
-                        buttons: [
-                        {
-                            extend: 'selectedSingle',
-                            text: 'Rezerviši',
-                            action: function (e, dt, button, config) {
-                                //console.log(dt.row({ selected: true }).data());
-                                document.getElementById("reserveTicketForm").submit();
-                            }
-                        }]          
+                        //buttons: [
+                        //{
+                        //    extend: 'selectedSingle',
+                        //    text: 'Rezerviši',
+                        //    action: function (e, dt, button, config) {
+                        //        //console.log(dt.row({ selected: true }).data());
+                        //        document.getElementById("reserveTicketForm").submit();
+                        //    }
+                        //}]
+                    });
+                    dt.on("select", function (e, dt, type, indexes) {
+                        document.getElementById("reserveTicketForm").submit();
                     });
                 });
             </script>

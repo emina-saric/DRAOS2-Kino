@@ -17,6 +17,7 @@
     @Html.Label("Vrijeme projekcije:") @row.Time
     @Html.Label("Broj karata:") @numberOfTickets
     @Html.Label("Cijena pojedinačne karte:") @row.Price KM
+    <hr />
     @Html.Label("Ukupna cijena:") @(row.Price*numberOfTickets) KM
 
 <form action="ReservationConfirmation" method="post">
