@@ -19,29 +19,38 @@
 }
 
 @{
-    var db = Database.Open("KinoDB");
-    var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID WHERE Projections.Time > GETDATE()";
-    var records = db.Query(selectQueryString);
+    string selectQueryString;
 
-    if (records.Count() == 0)
+    if (!IsPost)
     {
-        <h2>
-            Trenutno nema projekcija na raspolaganju.
-            Molimo, pokušajte malo kasnije.
-        </h2>
+        var db = Database.Open("KinoDB");
+        selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID WHERE Projections.Time > GETDATE()";
+        var records = db.Query(selectQueryString);
+
+        if (records.Count() == 0)
+        {
+            <h2>
+                Trenutno nema projekcija na raspolaganju.
+                Molimo, pokušajte malo kasnije.
+            </h2>
+        }
+        else
+        {
+            <ul class="rig columns-4">
+                @foreach (var row in records)
+                {
+                    <li>
+                        <a href="~/TicketReservation/ReserveTicket?movieID=@row.MovieID"><img alt="movie poster" src="@row.ImagePath" /></a>
+                        <h3>@row.Title</h3>
+                        <p>@row.Description</p>
+                    </li>
+                }
+            </ul>
+        }
     }
     else
     {
-        <ul class="rig columns-4">
-            @foreach (var row in records)
-            {
-                <li>
-                    <a href="~/TicketReservation/ReserveTicket?movieID=@row.MovieID"><img alt="movie poster" src="@row.ImagePath" /></a>
-                    <h3>@row.Title</h3>
-                    <p>@row.Description</p>
-                </li>
-            }
-        </ul>
+
     }
 }
        
