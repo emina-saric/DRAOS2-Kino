@@ -8,7 +8,7 @@
 
 @{
     int movieID = Request.QueryString["movieID"].AsInt(0);
-    string imagePath, title, description;
+    //string imagePath, title, description;
     
     if (movieID == 0)
     {
@@ -18,16 +18,16 @@
     {
         var db = Database.Open("KinoDB");
 
-        var row = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", movieID);
+        //var row = db.QuerySingle("SELECT Title, Description, ImagePath FROM Movies WHERE Movies.MovieID=@0", movieID);
 
-        imagePath = row.ImagePath;
-        title = row.Title;
-        description = row.Description;
+        //imagePath = row.ImagePath;
+        //title = row.Title;
+        //description = row.Description;
 
         var selectQueryString = "SELECT * FROM Movies JOIN Projections ON Movies.MovieID = Projections.MovieID JOIN Halls on Projections.HallID = Halls.HallID WHERE Projections.Time > GETDATE() AND Movies.MovieID = " + movieID;
-        var records = db.Query(selectQueryString);
+        var records = db.Query(selectQueryString).ToArray();
 
-        if (records.Count() == 0)
+        if (!records.Any())
         {
             <h2>
                 Trenutno nema projekcija na raspolaganju za ovaj film.
@@ -68,7 +68,7 @@
             <script>
                 $(function () {
                     var dt = $('#projectionsTable').DataTable({
-                        dom: 'Bfrtip',
+                        dom: 'frtip',
                         select: "single",
                         language: {
                             url: "/Content/DataTables-1.10.13/Croatian.json"
@@ -84,7 +84,7 @@
                         //}]
                     });
                     dt.on("select", function (e, dt, type, indexes) {
-                        document.getElementById("reserveTicketForm").submit();
+                        $("#reserveTicketForm").submit();
                     });
                 });
             </script>
